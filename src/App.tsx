@@ -120,15 +120,6 @@ function App() {
     );
   };
 
-  // Toggle between user and vendor view
-  const toggleView = () => {
-    setIsVendorView(!isVendorView);
-    if (!isVendorView) {
-      // Set first law firm as current when switching to vendor view
-      setCurrentLawFirm(cases[0].lawFirms[0]);
-    }
-  };
-
   const renderContent = () => {
     if (isVendorView) {
       // Get all invoices that have flags shared with the vendor
@@ -169,22 +160,13 @@ function App() {
                   <p className="text-gray-600 mt-1">Manage your legal cases efficiently</p>
                 </div>
                 
-                <div className="flex items-center space-x-4">
-                  <button
-                    onClick={toggleView}
-                    className="px-4 py-2 text-[#57CC99] border border-[#57CC99] rounded-lg hover:bg-[#57CC99] hover:text-white transition-colors"
-                  >
-                    {isVendorView ? 'Switch to User View' : 'Switch to Vendor View'}
-                  </button>
-                  
-                  <button
-                    onClick={() => setIsModalOpen(true)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-[#57CC99] text-white rounded-lg hover:bg-[#4BB587] transition-colors"
-                  >
-                    <Plus size={20} />
-                    <span>Create New Case</span>
-                  </button>
-                </div>
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="flex items-center space-x-2 px-4 py-2 bg-[#57CC99] text-white rounded-lg hover:bg-[#4BB587] transition-colors"
+                >
+                  <Plus size={20} />
+                  <span>Create New Case</span>
+                </button>
               </div>
 
               <section className="mb-8">

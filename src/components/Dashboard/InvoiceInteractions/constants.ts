@@ -1,0 +1,1 @@
+export const HIGHLIGHT_COLOR = '#FFB74D'; // Single orange color

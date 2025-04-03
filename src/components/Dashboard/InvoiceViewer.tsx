@@ -1,6 +1,10 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Invoice, Flag, ChatMessage } from '../../types';
-import { Mail, Info, CheckCircle, XCircle, Flag as FlagIcon, Send, Bot } from 'lucide-react';
+import { X, Mail, Info, CheckCircle, XCircle, Flag as FlagIcon, Send, Bot } from 'lucide-react';
+import { useTextSelection } from './InvoiceInteractions/hooks/useTextSelection';
+import { useHighlights } from './InvoiceInteractions/hooks/useHighlights';
+import { useComments } from './InvoiceInteractions/hooks/useComments';
+import { ContextMenu, TextHighlight, CommentIcon, ChatBox } from './InvoiceInteractions';
 
 interface InvoiceViewerProps {
   invoice: Invoice;
@@ -8,22 +12,44 @@ interface InvoiceViewerProps {
   onFlagAction: (invoiceId: string, flagId: string, action: string) => void;
 }
 
-const actionInfo = {
-  acknowledge: "Share this flag with the vendor via email",
-  reject: "Mark this as not a valid flag",
-  resolve: "Flag was valid but has been resolved"
-};
-
 const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ invoice, onClose, onFlagAction }) => {
-  const [selectedFlag, setSelectedFlag] = useState<Flag | null>(null);
-  const [showActionInfo, setShowActionInfo] = useState(false);
-  const [hoveredFlag, setHoveredFlag] = useState<Flag | null>(null);
+  const [selectedFlag, setSelectedFlag] = React.useState<Flag | null>(null);
+  const [isSharing, setIsSharing] = React.useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<ChatMessage[]>(invoice.messages || []);
   const [newMessage, setNewMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [isSharing, setIsSharing] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement>(null);
-  const modalRef = useRef<HTMLDivElement>(null);
+
+  const { contextMenu, handleContextMenu, closeContextMenu } = useTextSelection();
+  const { highlights, addHighlight, removeHighlight } = useHighlights(invoice.highlights);
+  const {
+    comments,
+    selectedComment,
+    setSelectedComment,
+    addComment,
+    addMessage,
+    removeComment
+  } = useComments(invoice.comments);
+
+  // This effect updates highlights and comments when the invoice prop changes
+  useEffect(() => {
+    // No need to explicitly update highlights and comments here
+    // as they are initialized with the invoice.highlights and invoice.comments
+  }, [invoice]);
+
+  // This effect updates the selected flag when the invoice (and its flags) change
+  useEffect(() => {
+    if (selectedFlag) {
+      // Find the updated version of the flag in the new invoice props
+      const updatedFlag = invoice.flags.find(f => f.id === selectedFlag.id);
+
+      // Update the selectedFlag with the new data from props
+      if (updatedFlag) {
+        setSelectedFlag(updatedFlag);
+      }
+    }
+  }, [invoice, selectedFlag]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -33,26 +59,12 @@ const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ invoice, onClose, onFlagA
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [onClose]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-
-  const handleFlagAction = async (flag: Flag, action: 'acknowledge' | 'reject' | 'resolve') => {
-    if (action === 'acknowledge') {
-      setIsSharing(true);
-      // Simulate email sending
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setIsSharing(false);
-    }
-
-    onFlagAction(invoice.id, flag.id, action);
-    setSelectedFlag(null);
-  };
 
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
@@ -68,7 +80,6 @@ const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ invoice, onClose, onFlagA
     setNewMessage('');
     setIsTyping(true);
 
-    // Simulate AI response
     setTimeout(() => {
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -81,6 +92,70 @@ const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ invoice, onClose, onFlagA
     }, 2000);
   };
 
+  const handleHighlightText = () => {
+    if (!contextMenu) return;
+    const selection = window.getSelection();
+    if (!selection) return;
+    addHighlight(selection);
+    closeContextMenu();
+  };
+
+  const handleAddComment = () => {
+    if (!contextMenu) return;
+    const selection = window.getSelection();
+    if (!selection) return;
+
+    const range = selection.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    const containerRect = modalRef.current?.getBoundingClientRect();
+
+    if (!containerRect) return;
+
+    addComment(
+      {
+        x: rect.right - containerRect.left,
+        y: rect.top - containerRect.top
+      },
+      contextMenu.selectedText
+    );
+    closeContextMenu();
+  };
+
+  const handleChatWithVendor = () => {
+    if (!contextMenu) return;
+    const selection = window.getSelection();
+    if (!selection) return;
+
+    const range = selection.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    const containerRect = modalRef.current?.getBoundingClientRect();
+
+    if (!containerRect) return;
+
+    const newComment = addComment(
+      {
+        x: rect.right - containerRect.left,
+        y: rect.top - containerRect.top
+      },
+      contextMenu.selectedText
+    );
+
+    addMessage(newComment.id, `Regarding: "${contextMenu.selectedText}"`, []);
+    closeContextMenu();
+  };
+
+  const handleFlagAction = async (flag: Flag, action: 'acknowledge' | 'reject' | 'resolve') => {
+    // Start sharing animation for acknowledge action
+    if (action === 'acknowledge') {
+      setIsSharing(true);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setIsSharing(false);
+    }
+
+    // Call the parent component's onFlagAction
+    onFlagAction(invoice.id, flag.id, action);
+  };
+
   const getFlagStatusColor = (type: Flag['type']) => {
     switch (type) {
       case 'open': return 'bg-amber-100 text-amber-800 border-amber-400';
@@ -88,16 +163,6 @@ const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ invoice, onClose, onFlagA
       case 'rejected': return 'bg-red-100 text-red-800 border-red-400';
       case 'resolved': return 'bg-green-100 text-green-800 border-green-400';
       default: return 'bg-gray-100 text-gray-800 border-gray-400';
-    }
-  };
-
-  const getHighlightColor = (type: Flag['type']) => {
-    switch (type) {
-      case 'open': return 'bg-amber-200/50';
-      case 'acknowledged': return 'bg-blue-200/50';
-      case 'rejected': return 'bg-red-200/50';
-      case 'resolved': return 'bg-green-200/50';
-      default: return 'bg-gray-200/50';
     }
   };
 
@@ -112,16 +177,19 @@ const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ invoice, onClose, onFlagA
       { text: 'Date          Description                                Hours    Rate      Amount', y: 280 },
       { text: '2025-03-04    Initial consultation (in-person)          1.5      $250/hr   $375.00', y: 310 },
       { text: '2025-03-06    Review of contract documents              2.0      $250/hr   $500.00', y: 340 },
-      { text: '2025-03-10    Drafting legal memorandum                3.0      $250/hr   $750.00', y: 370 },
+      { text: '2025-03-10    Drafting legal memorandum                 3.0      $250/hr   $750.00', y: 370 },
       { text: '2025-03-12    Client correspondence and revisions       1.0      $250/hr   $250.00', y: 400 },
-      { text: '2025-03-15    Filing and court fee                     N/A      Fixed Fee  $150.00', y: 430 },
+      { text: '2025-03-15    Filing and court fee                      N/A      Fixed Fee $150.00', y: 430 },
       { text: 'Subtotal: $2,025.00', y: 490 },
       { text: 'Tax (0%): $0.00', y: 520 },
       { text: 'Total Due: $2,025.00', y: 550 }
     ];
 
     return (
-      <div className="relative font-mono text-sm leading-6">
+      <div
+        className="relative font-mono text-sm leading-6 select-text"
+        onContextMenu={handleContextMenu}
+      >
         {lines.map((line, index) => (
           <div
             key={index}
@@ -132,29 +200,57 @@ const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ invoice, onClose, onFlagA
           </div>
         ))}
 
-        {/* Flag Highlights */}
+        <TextHighlight
+          highlights={highlights}
+          onRemove={removeHighlight}
+        />
+
         {invoice.flags.map((flag) => (
           <div
             key={flag.id}
-            className={`absolute cursor-pointer transition-all ${
-              (selectedFlag?.id === flag.id || hoveredFlag?.id === flag.id) 
-                ? getHighlightColor(flag.type) 
-                : 'hover:' + getHighlightColor(flag.type)
-            }`}
+            className={`absolute cursor-pointer transition-all ${selectedFlag?.id === flag.id ? 'bg-amber-200/50' : 'hover:bg-amber-200/50'
+              }`}
             style={{
               top: flag.position?.y - 4,
               left: flag.position?.x,
               width: '400px',
               height: '24px',
-              borderLeft: `2px solid ${flag.type === 'open' ? '#f59e0b' : 
-                flag.type === 'acknowledged' ? '#3b82f6' : 
-                flag.type === 'rejected' ? '#ef4444' : '#10b981'}`
+              borderLeft: `2px solid ${flag.type === 'open' ? '#f59e0b' :
+                  flag.type === 'acknowledged' ? '#3b82f6' :
+                    flag.type === 'rejected' ? '#ef4444' : '#10b981'
+                }`
             }}
             onClick={() => setSelectedFlag(flag)}
-            onMouseEnter={() => setHoveredFlag(flag)}
-            onMouseLeave={() => setHoveredFlag(null)}
           />
         ))}
+
+        {comments.map((comment) => (
+          <CommentIcon
+            key={comment.id}
+            comment={comment}
+            onClick={() => setSelectedComment(comment)}
+            onRemove={() => removeComment(comment.id)}
+          />
+        ))}
+
+        {contextMenu && (
+          <ContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            onHighlight={handleHighlightText}
+            onComment={handleAddComment}
+            onChat={handleChatWithVendor}
+          />
+        )}
+
+        {selectedComment && (
+          <ChatBox
+            comment={selectedComment}
+            onClose={() => setSelectedComment(null)}
+            onSendMessage={(text, files) => addMessage(selectedComment.id, text, files)}
+            onRemove={() => removeComment(selectedComment.id)}
+          />
+        )}
       </div>
     );
   };
@@ -174,7 +270,7 @@ const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ invoice, onClose, onFlagA
                 onClick={onClose}
                 className="text-gray-500 hover:text-gray-700"
               >
-                Close
+                <X size={24} />
               </button>
             </div>
           </div>
@@ -187,45 +283,22 @@ const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ invoice, onClose, onFlagA
         </div>
 
         {/* Flags Panel */}
-        <div className="w-96 border-r flex flex-col">
+        <div className="w-96 flex flex-col">
           <div className="sticky top-0 bg-white z-10 px-6 py-4 border-b">
             <div className="flex items-center space-x-2">
               <FlagIcon className="w-5 h-5 text-gray-600" />
               <h3 className="text-lg font-semibold">AI-Generated Flags</h3>
-              <button 
-                className="text-gray-400 hover:text-gray-600"
-                onClick={() => setShowActionInfo(!showActionInfo)}
-              >
-                <Info size={16} />
-              </button>
             </div>
-
-            {showActionInfo && (
-              <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                <h4 className="font-medium mb-2 text-blue-900">Available Actions</h4>
-                <ul className="space-y-2 text-sm text-blue-800">
-                  {Object.entries(actionInfo).map(([action, info]) => (
-                    <li key={action} className="flex items-start space-x-2">
-                      <span className="font-medium capitalize">{action}:</span>
-                      <span>{info}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </div>
 
           <div className="flex-1 overflow-y-auto p-6">
             <div className="space-y-4">
               {invoice.flags.map((flag) => (
-                <div 
-                  key={flag.id} 
-                  className={`p-4 rounded-lg transition-all ${getFlagStatusColor(flag.type)} ${
-                    selectedFlag?.id === flag.id ? 'ring-2 ring-blue-500' : ''
-                  } ${hoveredFlag?.id === flag.id ? 'ring-1 ring-gray-400' : ''}`}
+                <div
+                  key={flag.id}
+                  className={`p-4 rounded-lg border transition-all ${getFlagStatusColor(flag.type)} ${selectedFlag?.id === flag.id ? 'ring-2 ring-blue-500' : ''
+                    }`}
                   onClick={() => setSelectedFlag(flag)}
-                  onMouseEnter={() => setHoveredFlag(flag)}
-                  onMouseLeave={() => setHoveredFlag(null)}
                 >
                   <div className="flex justify-between items-start">
                     <div>
@@ -242,6 +315,7 @@ const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ invoice, onClose, onFlagA
                         </p>
                       )}
                     </div>
+                    <Info size={16} className="text-gray-400" />
                   </div>
 
                   {flag.type === 'open' && (
@@ -249,14 +323,11 @@ const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ invoice, onClose, onFlagA
                       <button
                         onClick={() => handleFlagAction(flag, 'acknowledge')}
                         disabled={isSharing}
-                        className={`flex items-center space-x-1 px-3 py-1 bg-blue-500 text-white rounded-lg transition-colors ${
-                          isSharing ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-600'
-                        }`}
+                        className={`flex items-center space-x-1 px-3 py-1 bg-blue-500 text-white rounded-lg transition-colors ${isSharing ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-600'
+                          }`}
                       >
                         {isSharing ? (
-                          <>
-                            <span className="animate-pulse">Sharing...</span>
-                          </>
+                          <span className="animate-pulse">Sharing...</span>
                         ) : (
                           <>
                             <Mail size={16} />
@@ -290,7 +361,7 @@ const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ invoice, onClose, onFlagA
           </div>
         </div>
 
-        {/* Chat Panel */}
+        {/* AI Chat Panel */}
         <div className="w-96 flex flex-col bg-gray-50">
           <div className="sticky top-0 bg-white z-10 px-6 py-4 border-b">
             <div className="flex items-center space-x-2">
@@ -307,11 +378,10 @@ const InvoiceViewer: React.FC<InvoiceViewerProps> = ({ invoice, onClose, onFlagA
                   className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-lg p-3 ${
-                      message.sender === 'user'
+                    className={`max-w-[80%] rounded-lg p-3 ${message.sender === 'user'
                         ? 'bg-blue-500 text-white'
                         : 'bg-white border text-gray-800'
-                    }`}
+                      }`}
                   >
                     <p className="text-sm">{message.text}</p>
                     <p className="text-xs mt-1 opacity-70">

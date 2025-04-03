@@ -8,60 +8,24 @@ import { Plus } from 'lucide-react';
 
 interface DashboardProps {
   caseData: Case;
+  onFlagAction: (invoiceId: string, flagId: string, action: string) => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ caseData }) => {
+const Dashboard: React.FC<DashboardProps> = ({ caseData, onFlagAction }) => {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [isAddInvoiceModalOpen, setIsAddInvoiceModalOpen] = useState(false);
   const [invoices, setInvoices] = useState<Invoice[]>(caseData.invoices || []);
   const [selectedLawFirm, setSelectedLawFirm] = useState('');
 
-  const handleAddInvoice = (file: File) => {
-    // Create a new invoice with dummy data
-    const newInvoice: Invoice = {
-      id: Math.random().toString(),
-      invoiceNo: `INV-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
-      date: new Date().toLocaleDateString(),
-      amount: 800,
-      lawFirmId: caseData.lawFirms[0].id,
-      documents: [file.name],
-      flags: [
-        {
-          id: Math.random().toString(),
-          type: 'open',
-          description: 'Review required: New service charge pattern detected',
-          position: { x: 150, y: 100 }
-        }
-      ],
-      status: 'analyzed'
-    };
-
+  const handleAddInvoice = (newInvoice: Invoice) => {
     setInvoices(prev => [newInvoice, ...prev]);
   };
 
-  const handleFlagAction = (invoiceId: string, flagId: string, action: string) => {
-    setInvoices(prevInvoices => 
-      prevInvoices.map(invoice => {
-        if (invoice.id === invoiceId) {
-          return {
-            ...invoice,
-            flags: invoice.flags.map(flag => {
-              if (flag.id === flagId) {
-                return {
-                  ...flag,
-                  type: action === 'acknowledge' ? 'acknowledged' : 
-                        action === 'reject' ? 'rejected' : 'resolved',
-                  actionTaken: action,
-                  actionDate: new Date().toISOString(),
-                  sharedWithVendor: action === 'acknowledge'
-                };
-              }
-              return flag;
-            })
-          };
-        }
-        return invoice;
-      })
+  const handleUpdateInvoice = (updatedInvoice: Invoice) => {
+    setInvoices(prev => 
+      prev.map(invoice => 
+        invoice.id === updatedInvoice.id ? updatedInvoice : invoice
+      )
     );
   };
 
@@ -74,13 +38,13 @@ const Dashboard: React.FC<DashboardProps> = ({ caseData }) => {
             <p className="text-gray-600 mt-1">Case #{caseData.caseNumber}</p>
           </div>
           
-          <button
+          {/* <button
             onClick={() => setIsAddInvoiceModalOpen(true)}
             className="flex items-center space-x-2 px-4 py-2 bg-[#57CC99] text-white rounded-lg hover:bg-[#4BB587] transition-colors"
           >
             <Plus size={20} />
             <span>Add New Invoice</span>
-          </button>
+          </button> */}
         </div>
 
         <div className="mb-8">
@@ -91,6 +55,7 @@ const Dashboard: React.FC<DashboardProps> = ({ caseData }) => {
             lawFirms={caseData.lawFirms}
             selectedLawFirm={selectedLawFirm}
             onLawFirmChange={setSelectedLawFirm}
+            onUpdateInvoice={handleUpdateInvoice}
           />
         </div>
 
@@ -103,7 +68,7 @@ const Dashboard: React.FC<DashboardProps> = ({ caseData }) => {
           <InvoiceViewer
             invoice={selectedInvoice}
             onClose={() => setSelectedInvoice(null)}
-            onFlagAction={handleFlagAction}
+            onFlagAction={onFlagAction}
           />
         )}
 

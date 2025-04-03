@@ -52,7 +52,9 @@ const mockInvoices: Invoice[] = [
     documents: ['invoice-1.pdf'],
     flags: mockFlags,
     status: 'analyzed',
-    messages: mockMessages
+    messages: mockMessages,
+    comments: [],
+    highlights: []
   },
   {
     id: '2',
@@ -62,7 +64,9 @@ const mockInvoices: Invoice[] = [
     lawFirmId: '1',
     documents: ['invoice-2.pdf'],
     flags: [],
-    status: 'paid'
+    status: 'paid',
+    comments: [],
+    highlights: []
   }
 ];
 

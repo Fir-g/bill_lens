@@ -2,11 +2,12 @@ import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { X, Upload, FileText } from 'lucide-react';
 import { Bars } from 'react-loading-icons';
+import { Invoice } from '../../types';
 
 interface AddInvoiceModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (file: File) => void;
+  onSubmit: (invoice: Invoice) => void;
 }
 
 const AIAnalysisSteps = [
@@ -15,6 +16,17 @@ const AIAnalysisSteps = [
   "Rationalizing content...",
   "Identifying flags..."
 ];
+
+const generateInvoiceNumber = () => {
+  const prefix = 'INV';
+  const randomNum = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+  const year = new Date().getFullYear();
+  return `${prefix}-${year}-${randomNum}`;
+};
+
+const generateRandomAmount = () => {
+  return Math.floor(Math.random() * (10000 - 1000) + 1000);
+};
 
 const AddInvoiceModal: React.FC<AddInvoiceModalProps> = ({ isOpen, onClose, onSubmit }) => {
   const [file, setFile] = useState<File | null>(null);
@@ -44,8 +56,30 @@ const AddInvoiceModal: React.FC<AddInvoiceModalProps> = ({ isOpen, onClose, onSu
       await new Promise(resolve => setTimeout(resolve, 1500));
     }
 
-    onSubmit(file);
+    // Create a new invoice with dummy data
+    const newInvoice: Invoice = {
+      id: Math.random().toString(),
+      invoiceNo: generateInvoiceNumber(),
+      date: new Date().toLocaleDateString(),
+      amount: generateRandomAmount(),
+      lawFirmId: '1', // Using first law firm as default
+      documents: [file.name],
+      flags: [
+        {
+          id: Math.random().toString(),
+          type: 'open',
+          description: 'Review required: New service charge pattern detected',
+          position: { x: 150, y: 100 }
+        }
+      ],
+      status: 'analyzed',
+      comments: [],
+      highlights: []
+    };
+
+    onSubmit(newInvoice);
     setIsAnalyzing(false);
+    setFile(null);
     onClose();
   };
 

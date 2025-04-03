@@ -28,6 +28,8 @@ export interface Invoice {
   lawFirmId: string;
   documents: string[];
   flags: Flag[];
+  comments: Comment[];
+  highlights: TextHighlight[];
   status: 'analyzed' | 'shared' | 'in-review' | 'vendor-responded' | 'paid';
   messages?: ChatMessage[];
   vendorResponses?: VendorResponse[];
@@ -42,6 +44,35 @@ export interface Flag {
   actionDate?: string;
   sharedWithVendor?: boolean;
   vendorResponse?: string;
+}
+
+export interface Comment {
+  id: string;
+  position: { x: number; y: number };
+  messages: CommentMessage[];
+  createdAt: string;
+  selectedText?: string;
+  text?: string;
+}
+
+export interface CommentMessage {
+  id: string;
+  text: string;
+  sender: string;
+  attachments?: string[];
+  timestamp: string;
+}
+
+export interface TextHighlight {
+  id: string;
+  text: string;
+  color: string;
+  position: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
 }
 
 export interface VendorResponse {
