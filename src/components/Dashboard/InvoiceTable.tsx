@@ -330,10 +330,8 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({
                           </span>
 
                           {hoveredStatus === invoice.id && (
-                            <div className="absolute bottom-full left-0 mb-2 w-48 bg-white rounded-lg shadow-lg border p-3 z-20">
-                              <p className="text-sm text-gray-600 leading-snug">
-                                {statusInfo[invoice.status]}
-                              </p>
+                            <div className="absolute bottom-full left-0 bg-white rounded-md shadow-md border p-2 z-20 text-[10px] text-gray-500 max-s whitespace-pre-wrap">
+                              {statusInfo[invoice.status]}
                             </div>
                           )}
                         </div>
