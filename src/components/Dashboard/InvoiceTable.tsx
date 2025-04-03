@@ -173,12 +173,16 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({
             type="file"
             accept=".pdf"
             onChange={(e) => handleFileUpload(e)}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+            className="sr-only"
+            id="fileUpload"
           />
-          <button className="flex items-center space-x-2 px-4 py-2 bg-[#57CC99] text-white rounded-lg hover:bg-[#4BB587] transition-colors">
+          <label
+            htmlFor="fileUpload"
+            className="flex items-center space-x-2 px-4 py-2 bg-[#57CC99] text-white rounded-lg hover:bg-[#4BB587] transition-colors cursor-pointer"
+          >
             <Plus size={20} />
             <span>Add New Invoice</span>
-          </button>
+          </label>
         </div>
       </div>
 
@@ -258,19 +262,19 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({
                               </span>
                             </button>
                           ))}
-                          <div className="relative">
-                            <input
-                              type="file"
-                              accept=".pdf"
-                              onChange={(e) => handleFileUpload(e, invoice.id)}
-                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                              onClick={(e) => e.stopPropagation()}
-                            />
-                            <div className="flex items-center text-green-600 hover:text-green-800 text-sm cursor-pointer">
-                              <Plus size={16} className="mr-1" />
-                              <span>+ Add Supporting Doc</span>
+                            <div className="relative">
+                              <label className="flex items-center text-green-600 hover:text-green-800 text-sm cursor-pointer">
+                                <input
+                                  type="file"
+                                  accept=".pdf"
+                                  onChange={(e) => handleFileUpload(e, invoice.id)}
+                                  className="absolute inset-0 w-full h-full opacity-0 pointer-events-none"
+                                />
+                                <Plus size={16} className="mr-1" />
+                                <span> Add Supporting Doc</span>
+                              </label>
                             </div>
-                          </div>
+
                         </div>
                       )}
                     </td>
