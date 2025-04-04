@@ -1,4 +1,4 @@
-import { DivideIcon as LucideIcon } from 'lucide-react';
+import { DivideIcon as LucideIcon } from "lucide-react";
 
 export interface Case {
   id: string;
@@ -8,9 +8,11 @@ export interface Case {
   state: string;
   country: string;
   lawFirms: LawFirm[];
-  status: 'active' | 'past';
+  status: "active" | "past";
   createdAt: string;
   invoices?: Invoice[];
+  leadLawyer?: string;
+  targetBudget?: number;
 }
 
 export interface LawFirm {
@@ -18,6 +20,7 @@ export interface LawFirm {
   name: string;
   email: string;
   agreementFile?: string;
+  leadLawyer?: string;
 }
 
 export interface Invoice {
@@ -30,14 +33,14 @@ export interface Invoice {
   flags: Flag[];
   comments: Comment[];
   highlights: TextHighlight[];
-  status: 'analyzed' | 'shared' | 'in-review' | 'vendor-responded' | 'paid';
+  status: "analyzed" | "shared" | "in-review" | "vendor-responded" | "paid";
   messages?: ChatMessage[];
   vendorResponses?: VendorResponse[];
 }
 
 export interface Flag {
   id: string;
-  type: 'open' | 'acknowledged' | 'rejected' | 'resolved';
+  type: "open" | "acknowledged" | "rejected" | "resolved";
   description: string;
   position?: { x: number; y: number };
   actionTaken?: string;
@@ -90,17 +93,19 @@ export interface FormData {
   subCategory: string;
   state: string;
   country: string;
+  targetBudget: number;
   lawFirms: {
     name: string;
     email: string;
     agreementFile?: File;
+    leadLawyer: string;
   }[];
 }
 
 export interface ChatMessage {
   id: string;
   text: string;
-  sender: 'user' | 'ai';
+  sender: "user" | "ai";
   timestamp: string;
 }
 
@@ -115,27 +120,27 @@ export interface FlagTemplate {
   id: string;
   name: string;
   description: string;
-  type: 'system' | 'custom';
+  type: "system" | "custom";
   isActive: boolean;
   category: FlagCategory;
-  severity: 'high' | 'medium' | 'low';
+  severity: "high" | "medium" | "low";
   actions: FlagAction[];
 }
 
-export type FlagCategory = 
-  | 'rates' 
-  | 'clarification' 
-  | 'backup' 
-  | 'repeated' 
-  | 'time' 
-  | 'proof' 
-  | 'agreement' 
-  | 'custom';
+export type FlagCategory =
+  | "rates"
+  | "clarification"
+  | "backup"
+  | "repeated"
+  | "time"
+  | "proof"
+  | "agreement"
+  | "custom";
 
 export interface FlagAction {
   id: string;
   name: string;
   description: string;
-  type: 'request' | 'notify' | 'verify' | 'upload';
+  type: "request" | "notify" | "verify" | "upload";
   icon: LucideIcon;
 }

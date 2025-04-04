@@ -262,18 +262,18 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({
                               </span>
                             </button>
                           ))}
-                            <div className="relative">
-                              <label className="flex items-center text-green-600 hover:text-green-800 text-sm cursor-pointer">
-                                <input
-                                  type="file"
-                                  accept=".pdf"
-                                  onChange={(e) => handleFileUpload(e, invoice.id)}
-                                  className="absolute inset-0 w-full h-full opacity-0 pointer-events-none"
-                                />
-                                <Plus size={16} className="mr-1" />
-                                <span> Add Supporting Doc</span>
-                              </label>
-                            </div>
+                          <div className="relative">
+                            <label className="flex items-center text-green-600 hover:text-green-800 text-sm cursor-pointer">
+                              <input
+                                type="file"
+                                accept=".pdf"
+                                onChange={(e) => handleFileUpload(e, invoice.id)}
+                                className="absolute inset-0 w-full h-full opacity-0 pointer-events-none"
+                              />
+                              <Plus size={16} className="mr-1" />
+                              <span> Add Supporting Doc</span>
+                            </label>
+                          </div>
 
                         </div>
                       )}

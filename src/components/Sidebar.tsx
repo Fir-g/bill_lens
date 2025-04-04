@@ -16,7 +16,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeItem, onItemClick }) => {
   return (
     <div className="h-screen w-64 bg-[#2D4356] text-white p-6">
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-[#57CC99]">LegalFlow</h2>
+        <h2 className="text-2xl font-bold text-[#57CC99]">Bill Lens</h2>
       </div>
       <nav>
         {menuItems.map((item) => {

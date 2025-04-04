@@ -16,7 +16,8 @@ const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClose, onSu
     subCategory: '',
     state: '',
     country: '',
-    lawFirms: [{ name: '', email: '' }]
+    targetBudget: 0,
+    lawFirms: [{ name: '', email: '', leadLawyer: '' }]
   });
 
   if (!isOpen) return null;
@@ -30,7 +31,7 @@ const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClose, onSu
   const addLawFirm = () => {
     setFormData({
       ...formData,
-      lawFirms: [...formData.lawFirms, { name: '', email: '' }]
+      lawFirms: [...formData.lawFirms, { name: '', email: '', leadLawyer: '' }]
     });
   };
 
@@ -62,10 +63,10 @@ const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClose, onSu
           >
             <X size={24} />
           </button>
-          
+
           <h2 className="text-2xl font-bold text-[#2D4356]">Create a Case</h2>
         </div>
-        
+
         <div className="p-6 overflow-y-auto flex-1">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -81,7 +82,7 @@ const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClose, onSu
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Case No.
@@ -114,7 +115,7 @@ const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClose, onSu
                   <option value="Family">Family</option>
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Sub-Category
@@ -147,7 +148,7 @@ const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClose, onSu
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Country
@@ -157,6 +158,24 @@ const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClose, onSu
                   value={formData.country}
                   onChange={(e) => setFormData({ ...formData, country: e.target.value })}
                   className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[#57CC99] focus:border-transparent"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Target Budget
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-2 text-gray-500">$</span>
+                <input
+                  type="number"
+                  value={formData.targetBudget}
+                  onChange={(e) => setFormData({ ...formData, targetBudget: parseFloat(e.target.value) })}
+                  className="w-full p-2 pl-8 border rounded-lg focus:ring-2 focus:ring-[#57CC99] focus:border-transparent"
+                  min="0"
+                  step="0.01"
                   required
                 />
               </div>
@@ -216,6 +235,20 @@ const CreateCaseModal: React.FC<CreateCaseModalProps> = ({ isOpen, onClose, onSu
                         required
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Lead Lawyer
+                    </label>
+                    <input
+                      type="text"
+                      value={firm.leadLawyer}
+                      onChange={(e) => updateLawFirm(index, 'leadLawyer', e.target.value)}
+                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[#57CC99] focus:border-transparent"
+                      required
+                      placeholder="Enter lead lawyer's name"
+                    />
                   </div>
 
                   <div>

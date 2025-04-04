@@ -25,7 +25,8 @@ function App() {
       id: Math.random().toString(),
       name: firm.name,
       email: firm.email,
-      agreementFile: firm.agreementFile?.name
+      agreementFile: firm.agreementFile?.name,
+      leadLawyer: firm.leadLawyer // Add this line to include the lead lawyer
     }));
 
     const newCase: Case = {
@@ -48,7 +49,7 @@ function App() {
   };
 
   const handleFlagAction = (invoiceId: string, flagId: string, action: string) => {
-    setCases(prevCases => 
+    setCases(prevCases =>
       prevCases.map(caseItem => {
         if (caseItem.invoices?.some(inv => inv.id === invoiceId)) {
           return {
@@ -57,7 +58,7 @@ function App() {
               if (invoice.id === invoiceId) {
                 // Update invoice status when flag is shared
                 const newStatus = action === 'acknowledge' ? 'shared' : invoice.status;
-                
+
                 return {
                   ...invoice,
                   status: newStatus,
@@ -65,8 +66,8 @@ function App() {
                     if (flag.id === flagId) {
                       return {
                         ...flag,
-                        type: action === 'acknowledge' ? 'acknowledged' : 
-                              action === 'reject' ? 'rejected' : 'resolved',
+                        type: action === 'acknowledge' ? 'acknowledged' :
+                          action === 'reject' ? 'rejected' : 'resolved',
                         actionTaken: action,
                         actionDate: new Date().toISOString(),
                         sharedWithVendor: action === 'acknowledge'
@@ -98,7 +99,7 @@ function App() {
   };
 
   const handleVendorResponse = (invoiceId: string, response: VendorResponse) => {
-    setCases(prevCases => 
+    setCases(prevCases =>
       prevCases.map(caseItem => {
         if (caseItem.invoices?.some(inv => inv.id === invoiceId)) {
           return {
@@ -123,9 +124,9 @@ function App() {
   const renderContent = () => {
     if (isVendorView) {
       // Get all invoices that have flags shared with the vendor
-      const sharedInvoices = cases.flatMap(c => 
-        c.invoices?.filter(invoice => 
-          invoice.lawFirmId === currentLawFirm?.id && 
+      const sharedInvoices = cases.flatMap(c =>
+        c.invoices?.filter(invoice =>
+          invoice.lawFirmId === currentLawFirm?.id &&
           invoice.flags.some(flag => flag.sharedWithVendor)
         ) || []
       );
@@ -143,8 +144,8 @@ function App() {
     switch (activeItem) {
       case 'dashboard':
         return selectedCase ? (
-          <Dashboard 
-            caseData={selectedCase} 
+          <Dashboard
+            caseData={selectedCase}
             onFlagAction={handleFlagAction}
           />
         ) : null;
@@ -159,7 +160,7 @@ function App() {
                   <h1 className="text-3xl font-bold text-[#2D4356]">Welcome, Omar</h1>
                   <p className="text-gray-600 mt-1">Manage your legal cases efficiently</p>
                 </div>
-                
+
                 <button
                   onClick={() => setIsModalOpen(true)}
                   className="flex items-center space-x-2 px-4 py-2 bg-[#57CC99] text-white rounded-lg hover:bg-[#4BB587] transition-colors"
@@ -173,9 +174,9 @@ function App() {
                 <h2 className="text-2xl font-semibold text-[#2D4356] mb-4">Active Cases</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {activeCases.map(caseItem => (
-                    <CaseCard 
-                      key={caseItem.id} 
-                      caseData={caseItem} 
+                    <CaseCard
+                      key={caseItem.id}
+                      caseData={caseItem}
                       onClick={() => handleCaseClick(caseItem)}
                     />
                   ))}
@@ -186,9 +187,9 @@ function App() {
                 <h2 className="text-2xl font-semibold text-[#2D4356] mb-4">Past Cases</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {pastCases.map(caseItem => (
-                    <CaseCard 
-                      key={caseItem.id} 
-                      caseData={caseItem} 
+                    <CaseCard
+                      key={caseItem.id}
+                      caseData={caseItem}
                       onClick={() => handleCaseClick(caseItem)}
                     />
                   ))}
@@ -207,7 +208,7 @@ function App() {
           <Sidebar activeItem={activeItem} onItemClick={setActiveItem} />
         </div>
       )}
-      
+
       <main className={`flex-1 ${!isVendorView ? 'ml-64' : ''} overflow-y-auto`}>
         {renderContent()}
       </main>
