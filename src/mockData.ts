@@ -6,14 +6,35 @@ const mockFlags: Flag[] = [
     type: "open",
     description:
       "Fixed fee charges require supporting documentation and approval",
-    position: { x: 50, y: 430 },
+    position: { x: 40, y: 530 },
+    
   },
   {
     id: "2",
     type: "open",
     description: "Contract document review time exceeds standard benchmarks",
     position: { x: 50, y: 340 },
+    
   },
+  {
+    id: "3",
+    type: "open",
+    description: "Court filing fee is higher than standard rates",
+    position: { x: 20, y: 222 },
+    
+  },
+  {
+    id: "4",
+    type: "open",
+    description: "charges for document review are higher than standard rates",
+    position: { x: 50, y: 340 },
+  },
+  {
+    id: "5",
+    type: "open",
+    description: "some provisions are not in line with the agreement",
+    position: { x: 40, y: 444 },
+  }
 ];
 
 const mockMessages: ChatMessage[] = [
@@ -50,8 +71,8 @@ const mockInvoices: Invoice[] = [
     date: "1/1/25",
     amount: 2025,
     lawFirmId: "1",
-    documents: ["invoice-1.pdf"],
-    flags: mockFlags,
+    documents: ["agreement.pdf"],
+    flags: mockFlags.filter((flag) => flag.id === "1" || flag.id === "2"),
     status: "analyzed",
     messages: mockMessages,
     comments: [],
@@ -62,9 +83,33 @@ const mockInvoices: Invoice[] = [
     invoiceNo: "INV-002",
     date: "1/1/25",
     amount: 1200,
-    lawFirmId: "1",
+    lawFirmId: "2",
+    documents: ["agreement-2.pdf"],
+    flags: mockFlags.filter((flag) => flag.id === "3"), 
+    status: "paid",
+    comments: [],
+    highlights: [],
+  },
+  {
+    id: "3",
+    invoiceNo: "INV-003",
+    date: "1/1/25",
+    amount: 1200,
+    lawFirmId: "3",
     documents: ["invoice-2.pdf"],
-    flags: [],
+    flags: mockFlags.filter((flag) => flag.id === "4" ), 
+    status: "paid",
+    comments: [],
+    highlights: [],
+  },
+  {
+    id: "4",
+    invoiceNo: "INV-003",
+    date: "1/1/25",
+    amount: 1200,
+    lawFirmId: "4",
+    documents: ["agreement-ex5.pdf"],
+    flags: mockFlags.filter((flag) => flag.id === "4" || flag.id === "5"), 
     status: "paid",
     comments: [],
     highlights: [],
@@ -87,10 +132,17 @@ export const mockCases: Case[] = [
         agreementFile: "agreement-1.pdf",
         leadLawyer: "Harvey Spector",
       },
+      {
+        id: "2",
+        name: "K. D. Pathak & Associates",
+        email: "Adaalat@kd.com",
+        agreementFile: "agreement-2.pdf",
+        leadLawyer: "K. D. Pathak",
+      },
     ],
     status: "active",
     createdAt: "2024-03-15",
-    invoices: mockInvoices,
+    invoices: mockInvoices.filter((invoice) => invoice.id === "2"||invoice.id === "1"),
   },
   {
     id: "2",
@@ -101,16 +153,23 @@ export const mockCases: Case[] = [
     country: "United States",
     lawFirms: [
       {
-        id: "2",
+        id: "3",
         name: "Zane & Associates",
         email: "contact@zanelaw.com",
         agreementFile: "agreement-2.pdf",
         leadLawyer: "Clerence Pereira",
       },
+      {
+        id: "4",
+        name: "	Boston Legal",
+        email: "contact@bostonlegal.com",
+        agreementFile: "agreement-1.pdf",
+        leadLawyer: "Alan shore",
+      },
     ],
     status: "active",
     createdAt: "2024-03-10",
-    invoices: mockInvoices,
+    invoices: mockInvoices.filter((invoice) => invoice.id === "3"||invoice.id === "4"),
   },
   {
     id: "3",
@@ -121,7 +180,7 @@ export const mockCases: Case[] = [
     country: "United States",
     lawFirms: [
       {
-        id: "3",
+        id: "5",
         name: "Smith & Partners",
         email: "contact@smithlaw.com",
         agreementFile: "agreement-3.pdf",
@@ -140,7 +199,7 @@ export const mockCases: Case[] = [
     country: "United States",
     lawFirms: [
       {
-        id: "4",
+        id: "6",
         name: "Johnson Legal",
         email: "contact@johnsonlegal.com",
         agreementFile: "agreement-4.pdf",

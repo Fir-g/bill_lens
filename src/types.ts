@@ -47,6 +47,7 @@ export interface Flag {
   actionDate?: string;
   sharedWithVendor?: boolean;
   vendorResponse?: string;
+ 
 }
 
 export interface Comment {
